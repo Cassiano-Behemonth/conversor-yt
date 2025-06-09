@@ -1,26 +1,29 @@
 import streamlit as st
-from pytube import YouTube
+import yt_dlp
 import os
 
-st.set_page_config(page_title="Conversor YouTube → MP4")
+st.set_page_config(page_title="YouTube para MP4", layout="centered")
+st.title("🎬 Conversor de YouTube para MP4 (educacional)")
 
-st.title("🎬 Conversor YouTube → MP4 (educacional)")
-st.markdown("Cole o link de um vídeo educacional livre de direitos autorais.")
+url = st.text_input("🔗 Cole a URL de um vídeo do YouTube")
 
-url = st.text_input("🔗 URL do vídeo")
-
-download_path = "videos_baixados"
-os.makedirs(download_path, exist_ok=True)
+output_dir = "videos"
+os.makedirs(output_dir, exist_ok=True)
 
 if st.button("⬇️ Baixar"):
     if not url:
         st.warning("Por favor, insira uma URL válida.")
     else:
         try:
-            yt = YouTube(url)
-            stream = yt.streams.get_highest_resolution()
-            st.info(f"🎥 Baixando: {yt.title}")
-            stream.download(output_path=download_path)
-            st.success(f"✅ Download concluído: {yt.title}")
+            ydl_opts = {
+                'format': 'bestvideo+bestaudio/best',
+                'outtmpl': os.path.join(output_dir, '%(title)s.%(ext)s'),
+                'merge_output_format': 'mp4'
+            }
+
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.download([url])
+
+            st.success("✅ Download concluído com sucesso!")
         except Exception as e:
-            st.error(f"Erro: {e}")
+            st.error(f"Erro durante o download: {e}")
